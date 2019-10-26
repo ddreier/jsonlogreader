@@ -13,9 +13,16 @@ func main() {
 		panic("Not enough args")
 	}
 
-	file, err := os.Open(os.Args[1])
+	err := processFile(os.Args[1], []string{"time", "request-id", "path", "msg", "workstation-id"})
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+	}
+}
+
+func processFile(path string, fields []string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
 	}
 	defer file.Close()
 
@@ -28,15 +35,20 @@ func main() {
 			if err == io.EOF {
 				break
 			}
-			panic(err)
+			return err
 		}
 
 		data := make(map[string]interface{})
 		err = json.Unmarshal(line, &data)
 		if err != nil {
-			panic(err)
+			return err
 		}
-
-		fmt.Printf("%v %v\n", data["time"], data["msg"])
+		var result string
+		for _, f := range fields {
+			result += fmt.Sprintf("%v ", data[f])
+		}
+		fmt.Println(result)
 	}
+
+	return nil
 }
